@@ -41,6 +41,23 @@
 
 <script>
 (() => {
+    // DEBUG: zeigt JavaScript-Fehler direkt im Spiel an
+  window.onerror = function (msg, src, line, col) {
+    const d = document.createElement('div');
+    d.style.position = 'fixed';
+    d.style.left = '10px';
+    d.style.right = '10px';
+    d.style.top = '10px';
+    d.style.zIndex = '9999';
+    d.style.padding = '12px';
+    d.style.background = 'rgba(0,0,0,0.85)';
+    d.style.color = 'white';
+    d.style.borderRadius = '12px';
+    d.style.fontSize = '14px';
+    d.style.whiteSpace = 'pre-wrap';
+    d.textContent = 'FEHLER:\\n' + msg + '\\n' + (src || '') + ':' + line + ':' + col;
+    document.body.appendChild(d);
+  };
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('score');
