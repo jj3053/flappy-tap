@@ -142,10 +142,16 @@ function setHigh(val) {
       if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, botRect)) die();
 
       if (!p.scored && bird.x > p.x + PIPE_W){
-        p.scored = true;
-        score++;
-        scoreEl.textContent = score;
-      }
+  p.scored = true;
+  score++;
+  scoreEl.textContent = score;
+
+  const currentHigh = getHigh();
+  if (score > currentHigh) {
+    setHigh(score);
+    highEl.textContent = score;
+  }
+}
     }
 
     // remove off-screen pipes
