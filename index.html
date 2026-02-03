@@ -41,30 +41,30 @@
 
 <script>
 (() => {
-  localStorage.removeItem('flappy_tap_highscore');
-
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('score');
   const ov = document.getElementById('ov');
   const finalEl = document.getElementById('final');
   const highEl = document.getElementById('high');
+
+  // Highscore-Key (wichtig!)
   const HS_KEY = 'flappy_tap_highscore';
 
-
-function getHigh() {
-  try {
-    return Number(localStorage.getItem(HS_KEY) || 0);
-  } catch (e) {
-    return 0; // falls iPhone Storage blockiert
+  function getHigh() {
+    try {
+      return Number(localStorage.getItem(HS_KEY) || 0);
+    } catch (e) {
+      return 0;
+    }
   }
-}
 
-function setHigh(val) {
-  try {
-    localStorage.setItem(HS_KEY, String(val));
-  } catch (e) {}
-}
+  function setHigh(val) {
+    try {
+      localStorage.setItem(HS_KEY, String(val));
+    } catch (e) {}
+  }
+
   const restartBtn = document.getElementById('restart');
 
   // --- Game constants ---
