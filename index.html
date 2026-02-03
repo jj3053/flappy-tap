@@ -130,8 +130,9 @@ const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
     for (const p of pipes){
       p.x -= PIPE_SPEED*dt;
 
-      const topH = p.center - GAP/2;
-      const botY = p.center + GAP/2;
+      const gap = p.isDouble ? GAP_DOUBLE : GAP_NORMAL;
+const topH = p.center compound center - gap/2;
+const botY = p.center + gap/2;
       const botH = (H - GROUND_H) - botY;
 
       const topRect = { x:p.x, y:0, w:PIPE_W, h:topH };
