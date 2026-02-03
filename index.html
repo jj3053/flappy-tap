@@ -41,6 +41,15 @@
 
 <script>
 (() => {
+  // --- RESET NUR 1x: löscht alle gespeicherten Scores/Flags ---
+try {
+  localStorage.removeItem('flappy_tap_highscore');
+  localStorage.removeItem('flappy_tap_highscore_v2');
+  localStorage.removeItem('flappy_tap_reset_done');
+  localStorage.removeItem('flappy_tap_reset_done_v2');
+  // optional ganz hart:
+  // localStorage.clear();
+} catch (e) {}
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('score');
