@@ -48,6 +48,15 @@
   const finalEl = document.getElementById('final');
   const highEl = document.getElementById('high');
 const HS_KEY = 'flappy_tap_highscore_v2';
+  const RESET_ONCE_KEY = 'flappy_tap_reset_done';
+
+// löscht den alten Highscore genau 1x, dann nie wieder
+try {
+  if (!localStorage.getItem(RESET_ONCE_KEY)) {
+    localStorage.removeItem(HS_KEY);
+    localStorage.setItem(RESET_ONCE_KEY, '1');
+  }
+} catch (e) {}
 
 function getHigh() {
   try {
