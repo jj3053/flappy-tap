@@ -79,21 +79,26 @@
   }
 
   // ✅ Doppel-Rohre (fair eingestellt)
-  function spawnPipePair(xOffset){
-    const min = 140, max = H - GROUND_H - 140;
-    const center = min + Math.random()*(max-min);
-    pipes.push({ x: W + 20 + xOffset, center, scored:false });
-  }
+  function spawnPipePair(xOffset, forcedCenter){
+  const min = 140, max = H - GROUND_H - 140;
+  const center = (forcedCenter !== undefined)
+    ? forcedCenter
+    : (min + Math.random()*(max-min));
+  pipes.push({ x: W + 20 + xOffset, center, scored:false });
+}
 
   function spawnPipe() {
-    const doubleChance = 0.10; // seltener doppelt
-    if (Math.random() < doubleChance) {
-      spawnPipePair(0);
-      spawnPipePair(260); // weiter auseinander = fairer
-    } else {
-      spawnPipePair(0);
-    }
+  const doubleChance = 0.10; // wie vorher (oder weniger)
+  if (Math.random() < doubleChance) {
+    const min = 140, max = H - GROUND_H - 140;
+    const sameCenter = min + Math.random()*(max-min);
+
+    spawnPipePair(0, sameCenter);
+    spawnPipePair(300, sameCenter); // mehr Abstand + gleicher Durchgang
+  } else {
+    spawnPipePair(0);
   }
+}
 
   function tap() { if (!dead) bird.vy = JUMP_V; }
 
