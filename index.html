@@ -91,10 +91,22 @@
     ov.style.display = 'none';
   }
 
-  function spawnPipe() {
-    const min = 140, max = H - GROUND_H - 140;
-    const center = min + Math.random()*(max-min);
-    pipes.push({ x: W + 20, center, scored:false });
+  function spawnPipePair(xOffset){
+  const min = 140, max = H - GROUND_H - 140;
+  const center = min + Math.random()*(max-min);
+  pipes.push({ x: W + 20 + xOffset, center, scored:false });
+}
+
+function spawnPipe() {
+  const doubleChance = 0.22; // 22% Doppel-Durchgang
+
+  if (Math.random() < doubleChance) {
+    spawnPipePair(0);      // erstes Rohr
+    spawnPipePair(160);    // zweites Rohr etwas dahinter
+  } else {
+    spawnPipePair(0);      // normales einzelnes Rohr
+  }
+}
   }
 
   function tap() {
@@ -164,8 +176,50 @@
   function draw(){
     // sky
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = '#87ceeb';
-    ctx.fillRect(0,0,W,H);
+    // --- BACKGROUND: sky gradient
+const sky = ctx.createLinearGradient(0, 0, 0, H);
+sky.addColorStop(0, '#7fd3ff');
+sky.addColorStop(0.6, '#bfefff');
+sky.addColorStop(1, '#e8fbff');
+ctx.fillStyle = sky;
+ctx.fillRect(0, 0, W, H);
+
+// sun
+ctx.fillStyle = 'rgba(255, 240, 120, 0.95)';
+ctx.beginPath();
+ctx.arc(W * 0.82, H * 0.14, 38, 0, Math.PI * 2);
+ctx.fill();
+
+// sea band
+ctx.fillStyle = 'rgba(40, 160, 220, 0.55)';
+ctx.fillRect(0, H * 0.52, W, H * 0.18);
+
+// beach band
+ctx.fillStyle = 'rgba(240, 220, 160, 0.95)';
+ctx.fillRect(0, H * 0.70, W, H * 0.22);
+    function palm(x, y, s){
+  // trunk
+  ctx.strokeStyle = 'rgba(20,40,20,0.8)';
+  ctx.lineWidth = 10*s;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.quadraticCurveTo(x+20*s, y-50*s, x+10*s, y-110*s);
+  ctx.stroke();
+
+  // leaves
+  ctx.strokeStyle = 'rgba(20,60,30,0.85)';
+  ctx.lineWidth = 6*s;
+  for (let i=0;i<6;i++){
+    const a = (-0.9 + i*0.3);
+    ctx.beginPath();
+    ctx.moveTo(x+10*s, y-110*s);
+    ctx.quadraticCurveTo(x+60*s*Math.cos(a), y-140*s, x+90*s*Math.cos(a), y-120*s);
+    ctx.stroke();
+  }
+}
+palm(W*0.12, H*0.86, 1.0);
+palm(W*0.22, H*0.90, 0.75);
 
     // pipes
     ctx.fillStyle = '#2e7d32';
