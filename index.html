@@ -60,7 +60,8 @@
   const GRAVITY = 1700;
   const JUMP_V = -520;
   const PIPE_W = 78;
-  const GAP = 190;
+  const GAP_NORMAL = 190;
+const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
   const PIPE_SPEED = 260;
   const SPAWN_EVERY = 1.35;
 
@@ -86,10 +87,10 @@
   }
 
   function spawnPipe() {
-    const doubleChance = 0.22;
+    const doubleChance = 0.12;
     if (Math.random() < doubleChance) {
       spawnPipePair(0);
-      spawnPipePair(160);
+      spawnPipePair(240);
     } else {
       spawnPipePair(0);
     }
