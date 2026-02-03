@@ -152,6 +152,29 @@ function spawnPipe() {
     tSpawn += dt;
     if (tSpawn >= SPAWN_EVERY){
       tSpawn = 0;
+      function maybeSpawnItem(x, center) {
+  const spawnChance = 0.25; // 25% überhaupt ein Item
+  if (Math.random() >= spawnChance) return;
+
+  const powerupChance = 0.70; // 70% Powerup, 30% Coin
+  let type = 'coin';
+
+  if (Math.random() < powerupChance) {
+    const r = Math.random();
+    if (r < 0.34) type = 'shield';
+    else if (r < 0.67) type = 'slow';
+    else type = 'magnet';
+  }
+
+  // Item in der Mitte der Lücke (center)
+  items.push({
+    x: x,
+    y: center,
+    r: 14,           // Radius
+    type: type,
+    taken: false
+  });
+}
       spawnPipe();
     }
 
