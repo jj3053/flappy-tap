@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Flappy Tap</title>
+  <style>
+    html,body{margin:0;height:100%;background:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    #wrap{height:100%;display:flex;align-items:center;justify-content:center}
+    canvas{background:#87ceeb;touch-action:none;border-radius:18px;max-width:96vw;max-height:90vh}
+    .hud{position:fixed;top:12px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+    .badge{background:rgba(0,0,0,.35);color:#fff;padding:8px 14px;border-radius:999px;font-weight:700}
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center}
+    .card{background:#fff;border-radius:16px;padding:18px 18px 14px;min-width:260px;max-width:92vw}
+    .row{display:flex;gap:10px;justify-content:center;margin-top:12px}
+    button{border:0;border-radius:12px;padding:12px 14px;font-weight:700}
+    .primary{background:#111;color:#fff}
+  </style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="420" height="700"></canvas></div>
+
+<div class="hud"><div class="badge">Score: <span id="score">0</span></div></div>
+
+<div class="overlay" id="ov">
+  <div class="card">
+    <div style="font-size:22px;font-weight:800;margin-bottom:6px">Game Over</div>
+    <div>Score: <span id="final">0</span></div>
+    <div class="row">
+      <button class="primary" id="restart">Restart</button>
+    </div>
+    <div style="margin-top:10px;color:#555;font-size:13px">
+      Tippe irgendwo zum Springen
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const ov = document.getElementById('ov');
+  const finalEl = document.getElementById('final');
+  const restartBtn = document.getElementById('restart');
+
+  // --- Game constants ---
+  const W = canvas.width, H = canvas.height;
+  const GROUND_H = 70;
+  const GRAVITY = 1700;
+  const JUMP_V = -520;
+  const PIPE_W = 78;
+  const GAP = 190;
+  const PIPE_SPEED = 260;
+  const SPAWN_EVERY = 1.35; // seconds
+
+  // --- State ---
+  let bird, pipes, tSpawn, score, dead, lastTime;
+
+  function reset() {
+    bird = { x: W*0.25, y: H*0.45, w: 44, h: 34, vy: 0 };
+    pipes = [];
+    tSpawn = 0;
+    score = 0;
+    dead = false;
+    scoreEl.textContent = score;
+    ov.style.display = 'none';
+  }
+
+  function spawnPipe() {
+    const min = 140, max = H - GROUND_H - 140;
+    const center = min + Math.random()*(max-min);
+    pipes.push({ x: W + 20, center, scored:false });
+  }
+
+  function tap() {
+    if (dead) return;
+    bird.vy = JUMP_V;
+  }
+
+  function rectsOverlap(a,b){
+    return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+  }
+
+  function die(){
+    if (dead) return;
+    dead = true;
+    finalEl.textContent = score;
+    ov.style.display = 'flex';
+  }
+
+  function update(dt){
+    if (dead) return;
+
+    // bird physics
+    bird.vy += GRAVITY*dt;
+    bird.y += bird.vy*dt;
+
+    if (bird.y < 20) { bird.y = 20; bird.vy = 0; }
+    if (bird.y + bird.h > H - GROUND_H) die();
+
+    // spawn pipes
+    tSpawn += dt;
+    if (tSpawn >= SPAWN_EVERY){
+      tSpawn = 0;
+      spawnPipe();
+    }
+
+    // move pipes + collisions + scoring
+    for (const p of pipes){
+      p.x -= PIPE_SPEED*dt;
+
+      const topH = p.center - GAP/2;
+      const botY = p.center + GAP/2;
+      const botH = (H - GROUND_H) - botY;
+
+      const topRect = { x:p.x, y:0, w:PIPE_W, h:topH };
+      const botRect = { x:p.x, y:botY, w:PIPE_W, h:botH };
+      const birdRect = { x:bird.x, y:bird.y, w:bird.w, h:bird.h };
+
+      if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, botRect)) die();
+
+      if (!p.scored && bird.x > p.x + PIPE_W){
+        p.scored = true;
+        score++;
+        scoreEl.textContent = score;
+      }
+    }
+
+    // remove off-screen pipes
+    pipes = pipes.filter(p => p.x + PIPE_W > -60);
+  }
+
+  function draw(){
+    // sky
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#87ceeb';
+    ctx.fillRect(0,0,W,H);
+
+    // pipes
+    ctx.fillStyle = '#2e7d32';
+    for (const p of pipes){
+      const topH = p.center - GAP/2;
+      const botY = p.center + GAP/2;
+      ctx.fillRect(p.x, 0, PIPE_W, topH);
+      ctx.fillRect(p.x, botY, PIPE_W, (H - GROUND_H) - botY);
+    }
+
+    // ground
+    ctx.fillStyle = '#7cb342';
+    ctx.fillRect(0, H-GROUND_H, W, GROUND_H);
+
+    // bird
+    ctx.fillStyle = '#ffd54f';
+    roundRect(ctx, bird.x, bird.y, bird.w, bird.h, 10);
+    ctx.fill();
+    // eye
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(bird.x + bird.w*0.75, bird.y + bird.h*0.35, 3.2, 0, Math.PI*2);
+    ctx.fill();
+
+    // hint
+    if (score === 0 && pipes.length < 2 && !dead){
+      ctx.fillStyle = 'rgba(0,0,0,.35)';
+      ctx.font = '700 22px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tippe zum Springen', W/2, H*0.25);
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.closePath();
+  }
+
+  function loop(ts){
+    if (!lastTime) lastTime = ts;
+    const dt = Math.min(0.033, (ts - lastTime)/1000);
+    lastTime = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // input
+  canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); tap(); }, {passive:false});
+  window.addEventListener('keydown', (e)=>{ if(e.code==='Space') tap(); });
+
+  restartBtn.addEventListener('click', reset);
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
