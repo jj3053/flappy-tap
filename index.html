@@ -77,12 +77,25 @@
   const PIPE_SPEED = 260;
   const SPAWN_EVERY = 1.35; // seconds
 
-  // --- State ---
-  let bird, pipes, tSpawn, score, dead, lastTime;
+// --- State ---
+let bird, pipes, items, tSpawn, score, dead, lastTime;
+
+// Powerup state
+let shield = false;
+let slowUntil = 0;
+let magnetUntil = 0;
+
+// optional: coins zählen
+let coins = 0;
 
   function reset() {
     bird = { x: W*0.25, y: H*0.45, w: 44, h: 34, vy: 0 };
     pipes = [];
+    items = [];
+    shield = false;
+    slowUntil = 0;
+    magnetUntil = 0;
+    coins = 0;
     tSpawn = 0;
     score = 0;
     dead = false;
