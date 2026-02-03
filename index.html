@@ -47,27 +47,14 @@
   const ov = document.getElementById('ov');
   const finalEl = document.getElementById('final');
   const highEl = document.getElementById('high');
-
-  // Highscore-Key (wichtig!)
-  const HS_KEY = 'flappy_tap_highscore';
-
-  function getHigh() {
-    try {
-      return Number(localStorage.getItem(HS_KEY) || 0);
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  function setHigh(val) {
-    try {
-      localStorage.setItem(HS_KEY, String(val));
-    } catch (e) {}
-  }
-
   const restartBtn = document.getElementById('restart');
 
-  // --- Game constants ---
+  // Highscore
+  const HS_KEY = 'flappy_tap_highscore';
+  function getHigh() { try { return Number(localStorage.getItem(HS_KEY) || 0); } catch(e){ return 0; } }
+  function setHigh(v) { try { localStorage.setItem(HS_KEY, String(v)); } catch(e){} }
+
+  // Game constants
   const W = canvas.width, H = canvas.height;
   const GROUND_H = 70;
   const GRAVITY = 1700;
@@ -75,27 +62,14 @@
   const PIPE_W = 78;
   const GAP = 190;
   const PIPE_SPEED = 260;
-  const SPAWN_EVERY = 1.35; // seconds
+  const SPAWN_EVERY = 1.35;
 
-// --- State ---
-let bird, pipes, items, tSpawn, score, dead, lastTime;
-
-// Powerup state
-let shield = false;
-let slowUntil = 0;
-let magnetUntil = 0;
-
-// optional: coins zählen
-let coins = 0;
+  // State
+  let bird, pipes, tSpawn, score, dead, lastTime;
 
   function reset() {
     bird = { x: W*0.25, y: H*0.45, w: 44, h: 34, vy: 0 };
     pipes = [];
-    items = [];
-    shield = false;
-    slowUntil = 0;
-    magnetUntil = 0;
-    coins = 0;
     tSpawn = 0;
     score = 0;
     dead = false;
@@ -104,22 +78,21 @@ let coins = 0;
     ov.style.display = 'none';
   }
 
+  // ✅ Doppel-Rohre (wie du wolltest)
   function spawnPipePair(xOffset){
-  const min = 140, max = H - GROUND_H - 140;
-  const center = min + Math.random()*(max-min);
-  pipes.push({ x: W + 20 + xOffset, center, scored:false });
-}
-
-function spawnPipe() {
-  const doubleChance = 0.22; // 22% Doppel-Durchgang
-
-  if (Math.random() < doubleChance) {
-    spawnPipePair(0);      // erstes Rohr
-    spawnPipePair(160);    // zweites Rohr etwas dahinter
-  } else {
-    spawnPipePair(0);      // normales einzelnes Rohr
+    const min = 140, max = H - GROUND_H - 140;
+    const center = min + Math.random()*(max-min);
+    pipes.push({ x: W + 20 + xOffset, center, scored:false });
   }
-}
+
+  function spawnPipe() {
+    const doubleChance = 0.22;
+    if (Math.random() < doubleChance) {
+      spawnPipePair(0);
+      spawnPipePair(160);
+    } else {
+      spawnPipePair(0);
+    }
   }
 
   function tap() {
@@ -141,44 +114,18 @@ function spawnPipe() {
   function update(dt){
     if (dead) return;
 
-    // bird physics
     bird.vy += GRAVITY*dt;
     bird.y += bird.vy*dt;
 
     if (bird.y < 20) { bird.y = 20; bird.vy = 0; }
     if (bird.y + bird.h > H - GROUND_H) die();
 
-    // spawn pipes
     tSpawn += dt;
     if (tSpawn >= SPAWN_EVERY){
       tSpawn = 0;
-      function maybeSpawnItem(x, center) {
-  const spawnChance = 0.25; // 25% überhaupt ein Item
-  if (Math.random() >= spawnChance) return;
-
-  const powerupChance = 0.70; // 70% Powerup, 30% Coin
-  let type = 'coin';
-
-  if (Math.random() < powerupChance) {
-    const r = Math.random();
-    if (r < 0.34) type = 'shield';
-    else if (r < 0.67) type = 'slow';
-    else type = 'magnet';
-  }
-
-  // Item in der Mitte der Lücke (center)
-  items.push({
-    x: x,
-    y: center,
-    r: 14,           // Radius
-    type: type,
-    taken: false
-  });
-}
       spawnPipe();
     }
 
-    // move pipes + collisions + scoring
     for (const p of pipes){
       p.x -= PIPE_SPEED*dt;
 
@@ -193,100 +140,19 @@ function spawnPipe() {
       if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, botRect)) die();
 
       if (!p.scored && bird.x > p.x + PIPE_W){
-  p.scored = true;
-  score++;
-  scoreEl.textContent = score;
+        p.scored = true;
+        score++;
+        scoreEl.textContent = score;
 
-  const currentHigh = getHigh();
-  if (score > currentHigh) {
-    setHigh(score);
-    highEl.textContent = score;
-  }
-}
+        const currentHigh = getHigh();
+        if (score > currentHigh) {
+          setHigh(score);
+          highEl.textContent = score;
+        }
+      }
     }
 
-    // remove off-screen pipes
     pipes = pipes.filter(p => p.x + PIPE_W > -60);
-  }
-
-  function draw(){
-    // sky
-    ctx.clearRect(0,0,W,H);
-    // --- BACKGROUND: sky gradient
-const sky = ctx.createLinearGradient(0, 0, 0, H);
-sky.addColorStop(0, '#7fd3ff');
-sky.addColorStop(0.6, '#bfefff');
-sky.addColorStop(1, '#e8fbff');
-ctx.fillStyle = sky;
-ctx.fillRect(0, 0, W, H);
-
-// sun
-ctx.fillStyle = 'rgba(255, 240, 120, 0.95)';
-ctx.beginPath();
-ctx.arc(W * 0.82, H * 0.14, 38, 0, Math.PI * 2);
-ctx.fill();
-
-// sea band
-ctx.fillStyle = 'rgba(40, 160, 220, 0.55)';
-ctx.fillRect(0, H * 0.52, W, H * 0.18);
-
-// beach band
-ctx.fillStyle = 'rgba(240, 220, 160, 0.95)';
-ctx.fillRect(0, H * 0.70, W, H * 0.22);
-    function palm(x, y, s){
-  // trunk
-  ctx.strokeStyle = 'rgba(20,40,20,0.8)';
-  ctx.lineWidth = 10*s;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.quadraticCurveTo(x+20*s, y-50*s, x+10*s, y-110*s);
-  ctx.stroke();
-
-  // leaves
-  ctx.strokeStyle = 'rgba(20,60,30,0.85)';
-  ctx.lineWidth = 6*s;
-  for (let i=0;i<6;i++){
-    const a = (-0.9 + i*0.3);
-    ctx.beginPath();
-    ctx.moveTo(x+10*s, y-110*s);
-    ctx.quadraticCurveTo(x+60*s*Math.cos(a), y-140*s, x+90*s*Math.cos(a), y-120*s);
-    ctx.stroke();
-  }
-}
-palm(W*0.12, H*0.86, 1.0);
-palm(W*0.22, H*0.90, 0.75);
-
-    // pipes
-    ctx.fillStyle = '#2e7d32';
-    for (const p of pipes){
-      const topH = p.center - GAP/2;
-      const botY = p.center + GAP/2;
-      ctx.fillRect(p.x, 0, PIPE_W, topH);
-      ctx.fillRect(p.x, botY, PIPE_W, (H - GROUND_H) - botY);
-    }
-
-    // ground
-    ctx.fillStyle = '#7cb342';
-    ctx.fillRect(0, H-GROUND_H, W, GROUND_H);
-
-    // bird
-    ctx.fillStyle = '#ffd54f';
-    roundRect(ctx, bird.x, bird.y, bird.w, bird.h, 10);
-    ctx.fill();
-    // eye
-    ctx.fillStyle = '#111';
-    ctx.beginPath();
-    ctx.arc(bird.x + bird.w*0.75, bird.y + bird.h*0.35, 3.2, 0, Math.PI*2);
-    ctx.fill();
-
-    // hint
-    if (score === 0 && pipes.length < 2 && !dead){
-      ctx.fillStyle = 'rgba(0,0,0,.35)';
-      ctx.font = '700 22px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('Tippe zum Springen', W/2, H*0.25);
-    }
   }
 
   function roundRect(ctx, x, y, w, h, r){
@@ -299,6 +165,39 @@ palm(W*0.22, H*0.90, 0.75);
     ctx.closePath();
   }
 
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#87ceeb';
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle = '#2e7d32';
+    for (const p of pipes){
+      const topH = p.center - GAP/2;
+      const botY = p.center + GAP/2;
+      ctx.fillRect(p.x, 0, PIPE_W, topH);
+      ctx.fillRect(p.x, botY, PIPE_W, (H - GROUND_H) - botY);
+    }
+
+    ctx.fillStyle = '#7cb342';
+    ctx.fillRect(0, H-GROUND_H, W, GROUND_H);
+
+    ctx.fillStyle = '#ffd54f';
+    roundRect(ctx, bird.x, bird.y, bird.w, bird.h, 10);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(bird.x + bird.w*0.75, bird.y + bird.h*0.35, 3.2, 0, Math.PI*2);
+    ctx.fill();
+
+    if (score === 0 && pipes.length < 2 && !dead){
+      ctx.fillStyle = 'rgba(0,0,0,.35)';
+      ctx.font = '700 22px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Tippe zum Springen', W/2, H*0.25);
+    }
+  }
+
   function loop(ts){
     if (!lastTime) lastTime = ts;
     const dt = Math.min(0.033, (ts - lastTime)/1000);
@@ -308,7 +207,6 @@ palm(W*0.22, H*0.90, 0.75);
     requestAnimationFrame(loop);
   }
 
-  // input
   canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); tap(); }, {passive:false});
   window.addEventListener('keydown', (e)=>{ if(e.code==='Space') tap(); });
 
