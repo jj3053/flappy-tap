@@ -60,8 +60,7 @@
   const GRAVITY = 1700;
   const JUMP_V = -520;
   const PIPE_W = 78;
-  const GAP_NORMAL = 190;
-const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
+  const GAP = 190;
   const PIPE_SPEED = 260;
   const SPAWN_EVERY = 1.35;
 
@@ -79,7 +78,7 @@ const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
     ov.style.display = 'none';
   }
 
-  // ✅ Doppel-Rohre (wie du wolltest)
+  // ✅ Doppel-Rohre (fair eingestellt)
   function spawnPipePair(xOffset){
     const min = 140, max = H - GROUND_H - 140;
     const center = min + Math.random()*(max-min);
@@ -87,19 +86,16 @@ const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
   }
 
   function spawnPipe() {
-    const doubleChance = 0.12;
+    const doubleChance = 0.10; // seltener doppelt
     if (Math.random() < doubleChance) {
       spawnPipePair(0);
-      spawnPipePair(240);
+      spawnPipePair(260); // weiter auseinander = fairer
     } else {
       spawnPipePair(0);
     }
   }
 
-  function tap() {
-    if (dead) return;
-    bird.vy = JUMP_V;
-  }
+  function tap() { if (!dead) bird.vy = JUMP_V; }
 
   function rectsOverlap(a,b){
     return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
@@ -130,9 +126,8 @@ const GAP_DOUBLE = 210; // etwas einfacher bei Doppel
     for (const p of pipes){
       p.x -= PIPE_SPEED*dt;
 
-      const gap = p.isDouble ? GAP_DOUBLE : GAP_NORMAL;
-const topH = p.center - gap/2;
-const botY = p.center + gap/2;
+      const topH = p.center - GAP/2;
+      const botY = p.center + GAP/2;
       const botH = (H - GROUND_H) - botY;
 
       const topRect = { x:p.x, y:0, w:PIPE_W, h:topH };
