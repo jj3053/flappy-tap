@@ -40,6 +40,10 @@
 </div>
 
 <script>
+window.onerror = function (msg, src, line, col) {
+  const b = document.querySelector('.badge');
+  if (b) b.textContent = 'JS-FEHLER: ' + msg + ' @' + line + ':' + col;
+};
 (() => {
   const canvas = document.getElementById('c');
   const ctx = canvas.getContext('2d');
