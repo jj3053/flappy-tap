@@ -88,13 +88,19 @@
 }
 
   function spawnPipe() {
-  const doubleChance = 0.10; // wie vorher (oder weniger)
+  const doubleChance = 0.10;
+
   if (Math.random() < doubleChance) {
     const min = 140, max = H - GROUND_H - 140;
     const sameCenter = min + Math.random()*(max-min);
 
+    const DOUBLE_SPACING = PIPE_W + 260; // garantiert kein "Wand"-Bug
+
     spawnPipePair(0, sameCenter);
-    spawnPipePair(300, sameCenter); // mehr Abstand + gleicher Durchgang
+    spawnPipePair(DOUBLE_SPACING, sameCenter);
+
+    // extra Pause nach Doppel, damit nicht direkt noch eins kommt
+    tSpawn = -SPAWN_EVERY;
   } else {
     spawnPipePair(0);
   }
