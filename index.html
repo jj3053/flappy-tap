@@ -89,6 +89,17 @@ shield = false;
     : (min + Math.random()*(max-min));
   pipes.push({ x: W + 20 + xOffset, center, scored:false });
 }
+maybeSpawnShield(W + 20 + xOffset + PIPE_W/2, center);
+function maybeSpawnShield(x, center) {
+  if (Math.random() > 0.15) return; // 15% Chance
+
+  items.push({
+    x: x,
+    y: center,
+    r: 14,
+    taken: false
+  });
+}
 
   function spawnPipe() {
   const doubleChance = 0.10;
@@ -148,7 +159,14 @@ shield = false;
       const botRect = { x:p.x, y:botY, w:PIPE_W, h:botH };
       const birdRect = { x:bird.x, y:bird.y, w:bird.w, h:bird.h };
 
-      if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, botRect)) die();
+      if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, botRect)) {
+  if (shield) {
+    shield = false;        // Shield verbraucht
+    bird.vy = JUMP_V * 0.6;
+  } else {
+    die();
+  }
+}
 
       if (!p.scored && bird.x > p.x + PIPE_W){
         p.scored = true;
@@ -162,7 +180,22 @@ shield = false;
         }
       }
     }
+for (const it of items) {
+  it.x -= PIPE_SPEED * dt;
+  if (it.taken) continue;
 
+  const bx = bird.x + bird.w/2;
+  const by = bird.y + bird.h/2;
+  const dx = it.x - bx;
+  const dy = it.y - by;
+
+  if (dx*dx + dy*dy < (it.r + 18)**2) {
+    it.taken = true;
+    shield = true;
+  }
+}
+
+items = items.filter(it => it.x > -80 && !it.taken);
     pipes = pipes.filter(p => p.x + PIPE_W > -60);
   }
 
@@ -188,7 +221,13 @@ shield = false;
       ctx.fillRect(p.x, 0, PIPE_W, topH);
       ctx.fillRect(p.x, botY, PIPE_W, (H - GROUND_H) - botY);
     }
-
+for (const it of items) {
+  if (it.taken) continue;
+  ctx.fillStyle = '#7ecbff'; // blau = Shield
+  ctx.beginPath();
+  ctx.arc(it.x, it.y, it.r, 0, Math.PI*2);
+  ctx.fill();
+}
     ctx.fillStyle = '#7cb342';
     ctx.fillRect(0, H-GROUND_H, W, GROUND_H);
 
