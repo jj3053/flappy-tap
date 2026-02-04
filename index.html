@@ -65,7 +65,8 @@
   const SPAWN_EVERY = 1.35;
 
   // State
-  let bird, pipes, tSpawn, score, dead, lastTime;
+  let bird, pipes, items, tSpawn, score, dead, lastTime;
+let shield = false;
 
   function reset() {
     bird = { x: W*0.25, y: H*0.45, w: 44, h: 34, vy: 0 };
