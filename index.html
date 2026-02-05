@@ -92,13 +92,13 @@ shield = false;
   const center = (forcedCenter !== undefined)
     ? forcedCenter
     : (min + Math.random()*(max-min));
-    
+
   pipes.push({ x: W + 20 + xOffset, center, scored:false });
-maybeSpawnShield(W + 20 + xOffset + PIPE_W/2, center);
-function maybeSpawnShield(x, center) 
+  maybeSpawnShield(W + 20 + xOffset + PIPE_W/2, center);
 }
-{
-  if (Math.random() > 0.30) return; // 15% Chance
+
+function maybeSpawnShield(x, center){
+  if (Math.random() > 0.30) return;
 
   items.push({
     x: x,
